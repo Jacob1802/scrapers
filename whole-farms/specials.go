@@ -46,17 +46,12 @@ func scrapeData() {
 		log.Fatal("Error parsing JSON:", err)
 	}
 
-	fmt.Println(existingSpecials)
-
 	// Make the HTTP request
 	resp, err := http.Get("https://wholefarms.com.au/search?dd=1&q%5B%5D=special%3A1&q%5B%5D=category%3Abutcher")
 	if err != nil {
 		log.Fatal("Error making HTTP request:", err)
 	}
 	defer resp.Body.Close()
-
-	// Check the response status
-	fmt.Println(resp.StatusCode)
 
 	// Read the response body
 	body, err := io.ReadAll(resp.Body)
@@ -126,8 +121,6 @@ func scrapeData() {
 						if err != nil {
 							log.Fatal("Error writing data to file:", err)
 						}
-
-						fmt.Println("Data successfully written to specials.json")
 					}
 				}
 			}
