@@ -98,15 +98,30 @@ func scrapeData() {
 						}
 					}
 
-					if !compareSpecials(existingSpecials.Items, newSpecials.Items) {
-						message := "New specials:\n"
-						for _, item := range newSpecials.Items {
-							message += fmt.Sprintf("Item: %s, Price: $%.2f\n", item.ItemName, item.Price)
+					// Compare existing and new specials
+					removedItems, newItems := compareSpecials(existingSpecials.Items, newSpecials.Items)
+
+					if len(newItems) > 0 || len(removedItems) > 0 {
+						message := "Changes in specials:\n\n"
+
+						if len(newItems) > 0 {
+							message += "New Items:\n"
+							for _, item := range newItems {
+								message += fmt.Sprintf("Item: %s, Price: $%.2f\n", item.ItemName, item.Price)
+							}
+							message += "\n"
 						}
-						message += fmt.Sprintln("Specials page: https://wholefarms.com.au/search?dd=1&q%5B%5D=special%3A1&q%5B%5D=category%3Abutcher")
+
+						if len(removedItems) > 0 {
+							message += "Removed Items:\n"
+							for _, item := range removedItems {
+								message += fmt.Sprintf("Item: %s, Price: $%.2f\n", item.ItemName, item.Price)
+							}
+						}
+
+						message += fmt.Sprintln("\nSpecials page: https://wholefarms.com.au/search?dd=1&q%5B%5D=special%3A1&q%5B%5D=category%3Abutcher")
 
 						err := sendTelegramMessage(message)
-
 						if err != nil {
 							log.Fatal("Error sending telegram message: ", err)
 						}
@@ -130,16 +145,32 @@ func scrapeData() {
 	}
 }
 
-func compareSpecials(old, new []Item) bool {
-	if len(old) != len(new) {
-		return false
+func compareSpecials(old, new []Item) (removedItems []Item, newItems []Item) {
+	oldMap := make(map[string]Item)
+	newMap := make(map[string]Item)
+
+	for _, item := range old {
+		oldMap[item.ItemName] = item
 	}
-	for i := range old {
-		if old[i] != new[i] {
-			return false
+	for _, item := range new {
+		newMap[item.ItemName] = item
+	}
+
+	// Check for removed items
+	for itemName, item := range oldMap {
+		if _, found := newMap[itemName]; !found {
+			removedItems = append(removedItems, item)
 		}
 	}
-	return true
+
+	// Check for new items
+	for itemName, item := range newMap {
+		if _, found := oldMap[itemName]; !found {
+			newItems = append(newItems, item)
+		}
+	}
+
+	return
 }
 
 func sendTelegramMessage(message string) error {
