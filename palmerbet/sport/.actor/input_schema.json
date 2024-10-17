@@ -1,0 +1,16 @@
+{
+    "title": "Scrape Sports Events Data",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "maxResults": {
+            "title": "Maximum Results",
+            "type": "integer",
+            "description": "Set the upper limit for the total number of events to retrieve.",
+            "default": 100,
+            "editor": "number",
+            "maximum": 1000000
+        }
+    },
+    "required": ["maxResults"]
+}
